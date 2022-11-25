@@ -1,52 +1,51 @@
+//imports
 const { fromEvent, interval, merge, EMPTY } = rxjs;
 const { take } = rxjs.operators;
 
-const hours = document.querySelector(".hour");
-const mins = document.querySelector(".mins");
-const secs = document.querySelector(".secs");
-const result = document.querySelector(".result");
-const startBtn = document.querySelector(".startBtn");
+// getting html elements
+const hours = document.getElementsByClassName("hour")[0];
+const mins = document.getElementsByClassName("mins")[0];
+const secs = document.getElementsByClassName("secs")[0];
+const result = document.getElementsByClassName("result")[0];
+const startBtn = document.getElementsByClassName("startBtn")[0];
 
-const getStartValue = () => {
-  let hrs = isNaN(hours.value * 60 * 60) ? 0 : hours.value * 60 * 60;
-  let min = isNaN(mins.value * 60) ? 0 : mins.value * 60;
-  let sec = isNaN(parseInt(secs.value)) ? 0 : parseInt(secs.value);
+//getting time input
+const getTime = () => {
+  let hrs = hours.value == '' ? 0 : hours.value * 60 * 60;
+  let min = mins.value == '' ? 0 : mins.value * 60;
+  let sec = secs.value == '' ? 0 : parseInt(secs.value);
   return hrs + min + sec;
 };
 
-const getTimeFromSeconds = (totalSeconds) => {
-  const hours = Math.floor(totalSeconds / (60 * 60));
-  const mins = Math.floor(totalSeconds / 60) % 60;
-  const seconds = Math.floor(totalSeconds % 60);
+//converting from seconds to hours, mins and seconds
+const convertSeconds = (total) => {
+  const hours = Math.floor(total / (60 * 60));
+  const mins = Math.floor(total / 60) % 60;
+  const seconds = Math.floor(total % 60);
 
   return { hours, mins, seconds };
 };
 
-const startObservable = fromEvent(startBtn, "click");
+const timeObservable = fromEvent(startBtn, "click");
+const clock = convertSeconds(getTime());
 
-const startTime = getTimeFromSeconds(getStartValue());
-result.innerHTML = "Set countdown";
-startTime.hours +
-  "h " +
-  (startTime.mins == 60 ? 0 : startTime.mins) +
-  "m " +
-  startTime.seconds +
-  "s";
+let subscriber = null;
 
-let timerSubscription = null;
+const subscription = timeObservable.subscribe(() => {
+  if (subscriber){
+    subscriber.unsubscribe();
+  }
 
-const subscription = startObservable.subscribe(() => {
-  if (timerSubscription) timerSubscription.unsubscribe();
+  const time = interval(1000)
+  const startValue = getTime();
+  const timer = time.pipe(take(getTime()));
 
-  const startValue = getStartValue();
-  const timer = interval(1000).pipe(take(getStartValue()));
-
-  timerSubscription = timer.subscribe((x) => {
-    const time = getTimeFromSeconds(startValue - x);
+  subscriber = timer.subscribe((x) => {
+    const clock = convertSeconds(startValue - x);
     result.classList.add('clock')
     result.innerHTML =
-      (time.hours > 0 ? time.hours  + "h " : '') + 
-      (time.mins == 60 ? 0 : time.mins) + "m " +
-      time.seconds + "s";
+      (clock.hours > 0 ? clock.hours  + "h " : '') + 
+      (clock.mins == 60 ? 0 : clock.mins) + "m " +
+      clock.seconds + "s";
   });
 });
