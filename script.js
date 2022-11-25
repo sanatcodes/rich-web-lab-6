@@ -26,23 +26,34 @@ const convertSeconds = (total) => {
   return { hours, mins, seconds };
 };
 
+//observable to tracke event change
 const timeObservable = fromEvent(startBtn, "click");
+
+//get latest time
 const clock = convertSeconds(getTime());
 
+//creat variable to store subscriber for time 
 let subscriber = null;
 
+// subscribe to event 
 const subscription = timeObservable.subscribe(() => {
   if (subscriber){
     subscriber.unsubscribe();
   }
 
+  //time for one sec
   const time = interval(1000)
+  // get total seconds
   const startValue = getTime();
+  //implimeting pipe method
   const timer = time.pipe(take(getTime()));
 
+  //subscribe to the piped stream
   subscriber = timer.subscribe((x) => {
+    // get latest time after interval removed
     const clock = convertSeconds(startValue - x);
     result.classList.add('clock')
+    //update ui 
     result.innerHTML =
       (clock.hours > 0 ? clock.hours  + "h " : '') + 
       (clock.mins == 60 ? 0 : clock.mins) + "m " +
