@@ -17,6 +17,9 @@ const getTime = () => {
   return hrs + min + sec;
 };
 
+//for looop
+
+
 //converting from seconds to hours, mins and seconds
 const convertSeconds = (total) => {
   const hours = Math.floor(total / (60 * 60));
